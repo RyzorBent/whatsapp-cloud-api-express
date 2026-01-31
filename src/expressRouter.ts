@@ -87,6 +87,7 @@ function webhookMainHandler(
                   type?: InteractiveType;
                   list_reply?: FreeFormObject;
                   button_reply?: FreeFormObject;
+                  nfm_reply?: FreeFormObject;
                 };
                 [others: string]: unknown;
               }[];
@@ -155,7 +156,9 @@ function webhookMainHandler(
           res.sendStatus(403);
           return;
         }
-        const hash = createHmac('sha256', appSecret).update(buf).digest('hex');
+        const hash = createHmac('sha256', appSecret)
+          .update(Uint8Array.from(buf))
+          .digest('hex');
         if (hash != signature256) {
           console.error('[verify] Signature verification failed');
           res.sendStatus(403);
@@ -197,12 +200,33 @@ function webhookMainHandler(
                   data = rest[type] as FreeFormObject;
                   break;
 
-                case 'interactive': // e.g. when the user replies to a sendReplyButtons message
+                case 'interactive': {
                   event = interactive?.type;
-                  data = {
-                    ...(interactive?.list_reply ?? interactive?.button_reply),
-                  };
+
+                  if (interactive?.type === 'nfm_reply') {
+                    data = { ...(interactive?.nfm_reply ?? {}) };
+                  } else if (interactive?.type === 'list_reply') {
+                    data = { ...(interactive?.list_reply ?? {}) };
+                  } else if (interactive?.type === 'button_reply') {
+                    data = { ...(interactive?.button_reply ?? {}) };
+                  } else {
+                    const interactiveType = interactive?.type as
+                      | string
+                      | undefined;
+                    const maybeInteractiveData = interactiveType
+                      ? (interactive as FreeFormObject | undefined)?.[
+                          interactiveType
+                        ]
+                      : undefined;
+
+                    data =
+                      maybeInteractiveData &&
+                      typeof maybeInteractiveData === 'object'
+                        ? { ...(maybeInteractiveData as FreeFormObject) }
+                        : {};
+                  }
                   break;
+                }
 
                 default:
                   break;
