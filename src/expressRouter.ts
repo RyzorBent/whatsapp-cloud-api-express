@@ -161,9 +161,19 @@ function webhookMainHandler(
           .digest('hex');
         const hashBuffer = Buffer.from(hash, 'hex');
         const signatureBuffer = Buffer.from(signature256, 'hex');
+        const hashBytes = new Uint8Array(
+          hashBuffer.buffer,
+          hashBuffer.byteOffset,
+          hashBuffer.byteLength
+        );
+        const signatureBytes = new Uint8Array(
+          signatureBuffer.buffer,
+          signatureBuffer.byteOffset,
+          signatureBuffer.byteLength
+        );
         if (
           hashBuffer.length !== signatureBuffer.length ||
-          !timingSafeEqual(hashBuffer, signatureBuffer)
+          !timingSafeEqual(hashBytes, signatureBytes)
         ) {
           console.error('[verify] Signature verification failed');
           res.sendStatus(403);
