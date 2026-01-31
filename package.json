@@ -50,8 +50,7 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "validator": "^13.11.0",
-     "whatsapp-cloud-api-express": "file:./whatsapp-cloud-api-express-1.0.1.tgz"
+    "validator": "^13.11.0"
   },
   "devDependencies": {
     "@ryansonshine/commitizen": "^4.2.8",
